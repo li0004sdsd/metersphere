@@ -24,7 +24,7 @@
             :preview-url="`${PreviewEditorImageUrl}/${currentProjectId}`"
           />
         </a-form-item>
-        <StepDescription v-model:caseEditType="form.caseEditType" />
+        <StepDescription v-model:case-edit-type="form.caseEditType" />
         <div v-if="form.caseEditType === 'STEP'" class="mb-[20px] w-full">
           <AddStep v-model:step-list="stepData" :is-disabled="false" />
         </div>
@@ -254,6 +254,7 @@
   import { ref } from 'vue';
   import { useRoute } from 'vue-router';
   import { FormInstance, Message } from '@arco-design/web-vue';
+  import { cloneDeep } from 'lodash-es';
 
   import MsButton from '@/components/pure/ms-button/index.vue';
   import MsFormCreate from '@/components/pure/ms-form-create/ms-form-create.vue';
@@ -311,6 +312,7 @@
   const props = defineProps<{
     formModeValue: Record<string, any>; // 表单值
     caseId: string; // 用例id
+    defaultCaseInfo?: Record<string, any>; // 默认用例信息
   }>();
 
   const emit = defineEmits(['update:formModeValue', 'changeFile']);
@@ -353,7 +355,26 @@
     reviewStatus: 'UN_REVIEWED',
   };
 
-  const form = ref<DetailCase | CreateOrUpdateCase>({ ...initForm });
+  function getStepData(steps: string) {
+    stepData.value = JSON.parse(steps).map((item: any) => {
+      return {
+        id: item.id,
+        step: item.desc,
+        expected: item.result,
+      };
+    });
+  }
+
+  function initDefaultCaseInfo() {
+    if (props?.defaultCaseInfo?.steps) {
+      getStepData(props.defaultCaseInfo.steps);
+    }
+    return {
+      ...cloneDeep(props.defaultCaseInfo),
+    };
+  }
+
+  const form = ref<DetailCase | CreateOrUpdateCase>({ ...cloneDeep(initForm), ...initDefaultCaseInfo() });
 
   watch(
     () => stepData.value,
@@ -383,20 +404,16 @@
   const formItem = ref<FormRuleItem[]>([]);
   const fApi = ref<any>(null);
 
-  function getStepData(steps: string) {
-    stepData.value = JSON.parse(steps).map((item: any) => {
-      return {
-        id: item.id,
-        step: item.desc,
-        expected: item.result,
-      };
-    });
-  }
-
   // 回显模板默认表单值
   function setSystemDefault(systemFields: CustomField[]) {
     systemFields.forEach((item: CustomField) => {
-      form.value[item.fieldId] = item.defaultValue;
+      if (
+        form.value[item.fieldId] === '' ||
+        form.value[item.fieldId] === undefined ||
+        form.value[item.fieldId] === null
+      ) {
+        form.value[item.fieldId] = item.defaultValue;
+      }
     });
     const { steps } = form.value;
 
@@ -435,11 +452,14 @@
         };
       });
       formRules.value = result;
-      setSystemDefault(systemFields || []);
-      isLoading.value = false;
+      if (systemFields?.length) {
+        setSystemDefault(systemFields);
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);
+    } finally {
+      isLoading.value = false;
     }
   }
 

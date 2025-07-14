@@ -27,5 +27,8 @@ export interface FormItemModel {
   hasRedStar?: boolean; // 是否有红星
   tooltip?: string;
   disabled?: boolean;
+  maxKey?: string;
+  minKey?: string;
+  getPrecisionFun?: (model: FormItemModel, ele: FormItemModel) => number;
   [key: string]: any;
 }

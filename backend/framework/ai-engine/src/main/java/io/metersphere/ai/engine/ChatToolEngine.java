@@ -3,6 +3,7 @@ package io.metersphere.ai.engine;
 import io.metersphere.ai.engine.common.AIChatOptions;
 import io.metersphere.ai.engine.holder.ChatClientHolder;
 import io.metersphere.sdk.util.LogUtils;
+import lombok.Getter;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.*;
@@ -63,6 +64,7 @@ public class ChatToolEngine {
         /**
          * 聊天客户端实例。
          */
+        @Getter
         private final ChatClient chatClient;
         /**
          * 工具列表。
@@ -167,6 +169,20 @@ public class ChatToolEngine {
             return buildRequest()
                     .stream()
                     .content();
+        }
+
+        /**
+         * 执行结构化聊天请求，并将响应转换为指定的数据结构。
+         *
+         * @param clazz        期望的响应数据类型
+         * @param <T>          响应数据的泛型类型
+         * @return 结构化的聊天响应
+         */
+        public <T> T executeStructured(Class<T> clazz) {
+            LogUtils.info("Processing structured chat request for messages: {}", prompt);
+            return buildRequest()
+                    .call()
+                    .entity(clazz);
         }
 
         /**

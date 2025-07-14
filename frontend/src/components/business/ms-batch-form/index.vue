@@ -88,9 +88,10 @@
                   v-model:model-value="element[model.field]"
                   class="flex-1"
                   :placeholder="t(model.placeholder || '')"
-                  :min="model.min"
-                  :max="model.max || 9999999"
+                  :min="model.min || element[model?.minKey || 'min']"
+                  :max="model.max || element[model?.maxKey || 'max'] || 9999999"
                   model-event="input"
+                  :precision="getNumberPrecision(model, element)"
                   allow-clear
                   :disabled="model.disabled"
                   @change="emit('change')"
@@ -184,7 +185,7 @@
                 class="mt-[8px]"
                 :style="{ 'margin-top': index === 0 && !props.isShowDrag ? '36px' : '' }"
                 size="small"
-                type="line"
+                :type="props.enableType"
                 @change="emit('change')"
               />
             </div>
@@ -217,7 +218,7 @@
             <template #icon>
               <icon-plus class="text-[14px]" />
             </template>
-            {{ t(props.addText) }}
+            {{ t(props.addText || 'common.add') }}
           </a-button>
           <template #content>
             <div>
@@ -246,25 +247,27 @@
   import type { FormInstance, ValidatedError } from '@arco-design/web-vue';
   import { FieldData } from '@arco-design/web-vue/es/form/interface';
 
-  const props = withDefaults(
-    defineProps<{
-      models: FormItemModel[];
-      formMode: FormMode;
-      addText: string;
-      maxHeight?: string;
-      defaultVals?: any[]; // 当外层是编辑状态时，可传入已填充的数据
-      isShowDrag?: boolean; // 是否可以拖拽
-      formWidth?: string; // 自定义表单区域宽度
-      showEnable?: boolean; // 是否显示启用禁用switch状态
-      hideAdd?: boolean; // 是否隐藏添加按钮
-      addToolTip?: string;
-    }>(),
-    {
-      maxHeight: '30vh',
-      isShowDrag: false,
-      hideAdd: false,
-    }
-  );
+  export interface BatchFormProps {
+    models: FormItemModel[];
+    formMode: FormMode;
+    addText?: string;
+    maxHeight?: string;
+    defaultVals?: any[]; // 当外层是编辑状态时，可传入已填充的数据
+    isShowDrag?: boolean; // 是否可以拖拽
+    formWidth?: string; // 自定义表单区域宽度
+    showEnable?: boolean; // 是否显示启用禁用switch状态
+    hideAdd?: boolean; // 是否隐藏添加按钮
+    addToolTip?: string;
+    enableType?: 'circle' | 'round' | 'line';
+  }
+
+  const props = withDefaults(defineProps<BatchFormProps>(), {
+    maxHeight: '30vh',
+    isShowDrag: false,
+    hideAdd: false,
+    enableType: 'line',
+  });
+
   const emit = defineEmits(['change']);
 
   const { t } = useI18n();
@@ -380,6 +383,14 @@
 
   function goTry() {
     window.open('https://jinshuju.net/f/CzzAOe', '_blank');
+  }
+
+  function getNumberPrecision(model: FormItemModel, element: FormItemModel) {
+    if (model?.precision) return model.precision;
+    if (model?.getPrecisionFun && typeof model.getPrecisionFun === 'function') {
+      return model.getPrecisionFun(model, element);
+    }
+    return undefined;
   }
 
   defineExpose({

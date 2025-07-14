@@ -1,19 +1,27 @@
 package io.metersphere.system.controller.user;
 
+import io.metersphere.ai.engine.common.AIModelParamType;
+import io.metersphere.ai.engine.common.AIModelType;
 import io.metersphere.sdk.util.CodingUtils;
 import io.metersphere.sdk.util.JSON;
 import io.metersphere.sdk.util.RsaKey;
 import io.metersphere.sdk.util.RsaUtils;
 import io.metersphere.system.base.BaseTest;
+import io.metersphere.system.constants.AIConfigConstants;
 import io.metersphere.system.controller.handler.ResultHolder;
+import io.metersphere.system.domain.AiModelSource;
 import io.metersphere.system.domain.UserExample;
 import io.metersphere.system.domain.UserExtend;
 import io.metersphere.system.domain.UserExtendExample;
+import io.metersphere.system.dto.request.ai.AdvSettingDTO;
+import io.metersphere.system.dto.request.ai.AiModelSourceDTO;
+import io.metersphere.system.dto.request.ai.AiModelSourceRequest;
 import io.metersphere.system.dto.request.user.PersonalLocaleRequest;
 import io.metersphere.system.dto.request.user.PersonalUpdatePasswordRequest;
 import io.metersphere.system.dto.request.user.PersonalUpdateRequest;
 import io.metersphere.system.dto.user.UserDTO;
 import io.metersphere.system.log.constants.OperationLogType;
+import io.metersphere.system.mapper.AiModelSourceMapper;
 import io.metersphere.system.mapper.UserExtendMapper;
 import io.metersphere.system.mapper.UserMapper;
 import io.metersphere.system.service.SimpleUserService;
@@ -27,6 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,6 +50,8 @@ public class PersonalControllerTests extends BaseTest {
     private UserMapper userMapper;
     @Resource
     private SimpleUserService simpleUserService;
+    @Resource
+    private AiModelSourceMapper aiModelSourceMapper;
 
     @Test
     @Order(0)
@@ -270,6 +281,90 @@ public class PersonalControllerTests extends BaseTest {
         Assertions.assertEquals(userMapper.countByExample(example), 1);
 
         this.checkLog(loginUser, OperationLogType.UPDATE, PersonalRequestUtils.URL_PERSONAL_UPDATE_PASSWORD);
+    }
+
+    @Test
+    @Order(4)
+    public void testEdit() throws Exception {
+        AiModelSourceDTO aiModelSourceDTO = new AiModelSourceDTO();
+        aiModelSourceDTO.setName("测试模型");
+        aiModelSourceDTO.setType("LLM");
+        aiModelSourceDTO.setProviderName(AIModelType.DEEP_SEEK);
+        aiModelSourceDTO.setPermissionType(AIConfigConstants.AiPermissionType.PRIVATE.toString());
+        aiModelSourceDTO.setOwnerType(AIConfigConstants.AiOwnerType.PERSONAL.toString());
+        aiModelSourceDTO.setBaseName("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B");
+        aiModelSourceDTO.setApiUrl("https://api.siliconflow.cn");
+        aiModelSourceDTO.setAppKey("sk-ryyuiioommnn");
+        AdvSettingDTO advSettingDTO = new AdvSettingDTO();
+        advSettingDTO.setName(AIModelParamType.TEMPERATURE);
+        advSettingDTO.setLabel("温度");
+        advSettingDTO.setValue(0.7);
+        advSettingDTO.setEnable(false);
+        List<AdvSettingDTO> list = new ArrayList<>();
+        list.add(advSettingDTO);
+        aiModelSourceDTO.setAdvSettingDTOList(list);
+        this.requestPost(PersonalRequestUtils.URL_PERSONAL_MODEL_EDIT_MODEL, aiModelSourceDTO).andExpect(status().isOk());
+        aiModelSourceDTO.setStatus(true);
+        aiModelSourceDTO.setName("测试模型8");
+        this.requestPost(PersonalRequestUtils.URL_PERSONAL_MODEL_EDIT_MODEL, aiModelSourceDTO).andExpect(status().is5xxServerError());
+
+    }
+
+    @Test
+    @Order(5)
+    public void testList() throws Exception {
+        AiModelSourceRequest request = new AiModelSourceRequest();
+        request.setCurrent(1);
+        request.setPageSize(10);
+        request.setOwner("admin");
+        this.requestPostWithOk(PersonalRequestUtils.URL_PERSONAL_MODEL_LIST, request);
+
+    }
+    @Test
+    @Order(6)
+    public void testDetail() throws Exception {
+        this.requestGet(PersonalRequestUtils.URL_PERSONAL_MODEL_DETAIL+"1").andExpect(status().is5xxServerError());
+        String id = saveModel("个人测试模型1", "admin");
+        this.requestGetWithOk(PersonalRequestUtils.URL_PERSONAL_MODEL_DETAIL+id);
+        String id2 = saveModel("个人测试模型2", "admin2");
+        this.requestGet(PersonalRequestUtils.URL_PERSONAL_MODEL_DETAIL+id2).andExpect(status().is5xxServerError());
+
+
+    }
+
+    @Test
+    @Order(7)
+    public void testDelete() throws Exception {
+        String id = saveModel("个人测试模型3", "admin");
+        this.requestGetWithOk(PersonalRequestUtils.URL_PERSONAL_MODEL_DELETE+id);
+    }
+
+    private String saveModel(String name, String userId){
+        String id = IDGenerator.nextStr();
+        AiModelSource aiModelSource = new AiModelSource();
+        aiModelSource.setId(id);
+        aiModelSource.setType("LLM");
+        aiModelSource.setName(name);
+        aiModelSource.setCreateTime(System.currentTimeMillis());
+        aiModelSource.setCreateUser("admin");
+        aiModelSource.setProviderName(AIModelType.DEEP_SEEK);
+        aiModelSource.setPermissionType(AIConfigConstants.AiPermissionType.PRIVATE.toString());
+        aiModelSource.setOwnerType(AIConfigConstants.AiOwnerType.PERSONAL.toString());
+        aiModelSource.setBaseName("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B");
+        aiModelSource.setApiUrl("https://api.siliconflow.cn");
+        aiModelSource.setAppKey("sk-rtgghhjkkll");
+        aiModelSource.setStatus(false);
+        aiModelSource.setOwner(userId);
+        AdvSettingDTO advSettingDTO = new AdvSettingDTO();
+        advSettingDTO.setName(AIModelParamType.TEMPERATURE);
+        advSettingDTO.setLabel("温度");
+        advSettingDTO.setValue(0.7);
+        advSettingDTO.setEnable(false);
+        List<AdvSettingDTO> list = new ArrayList<>();
+        list.add(advSettingDTO);
+        aiModelSource.setAdvSettings(JSON.toJSONString(advSettingDTO));
+        aiModelSourceMapper.insert(aiModelSource);
+        return id;
     }
 
 }

@@ -125,7 +125,7 @@ public class ApiTestCaseService extends MoveNodeService {
         }
     }
 
-    private ApiDefinition getApiDefinition(String apiDefinitionId) {
+    public ApiDefinition getApiDefinition(String apiDefinitionId) {
         //判断是否存在
         ApiDefinitionExample example = new ApiDefinitionExample();
         example.createCriteria().andIdEqualTo(apiDefinitionId).andDeletedEqualTo(false);
@@ -184,6 +184,7 @@ public class ApiTestCaseService extends MoveNodeService {
         testCase.setUpdateUser(userId);
         testCase.setCreateTime(System.currentTimeMillis());
         testCase.setUpdateTime(System.currentTimeMillis());
+        testCase.setAiCreate(request.getAiCreate());
         if (CollectionUtils.isNotEmpty(request.getTags())) {
             testCase.setTags(ServiceUtils.parseTags(request.getTags()));
         }
@@ -202,7 +203,7 @@ public class ApiTestCaseService extends MoveNodeService {
         return testCase;
     }
 
-    private String getMsTestElementStr(Object request) {
+    public String getMsTestElementStr(Object request) {
         String requestStr = JSON.toJSONString(request);
         AbstractMsTestElement msTestElement = ApiDataUtils.parseObject(requestStr, AbstractMsTestElement.class);
         // 手动校验参数

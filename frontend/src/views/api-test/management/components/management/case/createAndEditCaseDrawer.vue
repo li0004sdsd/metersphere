@@ -133,7 +133,7 @@
   import { getGenerateId } from '@/utils';
 
   import { AddApiCaseParams, ApiCaseDetail, ApiDefinitionDetail } from '@/models/apiTest/management';
-  import { RequestCaseStatus, RequestMethods } from '@/enums/apiEnum';
+  import { RequestCaseStatus, RequestDefinitionStatus, RequestMethods } from '@/enums/apiEnum';
 
   import { casePriorityOptions, defaultResponse } from '@/views/api-test/components/config';
   import { parseRequestBodyFiles } from '@/views/api-test/components/utils';
@@ -213,7 +213,7 @@
     });
   }
 
-  async function open(apiId: string, record?: ApiCaseDetail | RequestParam, isCopy?: boolean) {
+  async function open(apiId: string, record?: ApiCaseDetail | RequestParam, isCopy?: boolean, aiCreate?: boolean) {
     appStore.showLoading();
     apiDefinitionId.value = apiId;
     // 从api下的用例里打开抽屉有api信息，从case下直接复制没有api信息
@@ -256,6 +256,7 @@
           }
         : apiDetailInfo.value),
       children: apiDetailInfo.value.children ?? apiRequestInfo.children,
+      aiCreate,
     };
     // 复制
     if (isCopy) {
@@ -281,6 +282,7 @@
       }
       detailForm.value.name = `copy_${record?.name}`;
       detailForm.value.isCopy = true;
+      detailForm.value.aiCreate = false; // 复制的用例不是 AI 创建的
       environmentId.value = record?.environmentId ?? environmentId.value;
       if (detailForm.value.name.length > 255) {
         detailForm.value.name = detailForm.value.name.slice(0, 255);
@@ -290,8 +292,21 @@
     if (!isCopy && record?.id) {
       isEdit.value = true;
       detailForm.value = cloneDeep(record as RequestParam);
-      environmentId.value = record.environmentId ?? environmentId.value;
+      detailForm.value.protocol = apiDetailInfo.value.protocol; // 保持协议一致
+      environmentId.value = record?.environmentId ?? environmentId.value;
       detailForm.value.isNew = false;
+    } else if (aiCreate) {
+      detailForm.value = cloneDeep({
+        ...record,
+        ...record?.request,
+        priority: 'P0',
+        status: RequestDefinitionStatus.PROCESSING,
+      });
+      detailForm.value.id = getGenerateId(); // AI 创建的用例没有 id
+      detailForm.value.protocol = apiDetailInfo.value.protocol; // 保持协议一致
+      environmentId.value = record?.environmentId ?? environmentId.value;
+      detailForm.value.isNew = true;
+      detailForm.value.aiCreate = true; // AI 创建的用例
     }
     appStore.hideLoading();
     innerVisible.value = true;
@@ -320,7 +335,7 @@
         const requestParams = await requestCompositionRef.value?.makeRequestParams();
         if (!requestParams) return;
         const { linkFileIds, uploadFileIds, request, unLinkFileIds, deleteFileIds } = requestParams;
-        const { name, priority, status, tags, id } = detailForm.value;
+        const { name, priority, status, tags, id, aiCreate } = detailForm.value;
         const params: AddApiCaseParams = {
           projectId: appStore.currentProjectId,
           environmentId: environmentId.value as string,
@@ -335,7 +350,8 @@
           tags,
           unLinkFileIds,
           deleteFileIds,
-        };
+          aiCreate,
+        } as AddApiCaseParams;
         try {
           if (isEdit.value) {
             await updateCase(params);
@@ -355,6 +371,7 @@
         // 保存并继续创建都以当前页面内容为基础,不需要还原
         detailForm.value.id = `case-${Date.now()}`;
         detailForm.value.name = '';
+        detailForm.value.aiCreate = false;
         drawerLoading.value = false;
       }
     });

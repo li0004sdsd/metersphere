@@ -13,12 +13,13 @@
       ref="caseModuleDetailRef"
       v-model:form-mode-value="caseDetailInfo"
       :case-id="(route.query.id as string || '')"
+      :default-case-info="caseDetail"
     />
     <template #footerRight>
       <div class="flex justify-end gap-[16px]">
-        <a-button :disabled="loading" type="secondary" @click="cancelHandler">{{
-          t('mscard.defaultCancelText')
-        }}</a-button>
+        <a-button :disabled="loading" type="secondary" @click="cancelHandler">
+          {{ t('mscard.defaultCancelText') }}
+        </a-button>
         <a-button v-if="!isEdit" :loading="loading" type="secondary" @click="saveHandler(true)">
           {{ t('mscard.defaultSaveAndContinueText') }}
         </a-button>
@@ -53,6 +54,7 @@
 
   import Message from '@arco-design/web-vue/es/message';
 
+  const caseDetail = window.history.state.detail ? JSON.parse(window.history.state.detail) : null; // 获取上个页面带过来的用例详情
   const { setIsSave } = useLeaveUnSaveTip();
   const { t } = useI18n();
   const route = useRoute();
@@ -75,6 +77,7 @@
   const isEdit = computed(() => !!route.query.id);
   const isFormReviewCase = computed(() => route.query.reviewId);
 
+  const initAiCreate = ref(route.query.aiCreate === 'Y');
   const isContinueFlag = ref(false);
   const isShowTip = ref<boolean>(true);
   const createSuccessId = ref<string>('');
@@ -98,8 +101,10 @@
         if (isReview) {
           caseDetailInfo.value.request.reviewId = route.query.reviewId;
         }
+        caseDetailInfo.value.request.aiCreate = initAiCreate.value;
         const res = await createCaseRequest(caseDetailInfo.value);
         if (isContinue) {
+          initAiCreate.value = false;
           Message.success(t('caseManagement.featureCase.addSuccess'));
           caseModuleDetailRef.value.resetForm();
           return;

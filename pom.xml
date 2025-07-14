@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.0</version>
         <relativePath/>
     </parent>
 
@@ -30,7 +30,7 @@
         <metersphere-jmeter-functions.version>3.0</metersphere-jmeter-functions.version>
         <metersphere-jmeter-assertions.version>3.2</metersphere-jmeter-assertions.version>
         <quartz-starter.version>1.0.7</quartz-starter.version>
-        <redisson-starter.version>3.43.0</redisson-starter.version>
+        <redisson-starter.version>3.49.0</redisson-starter.version>
         <mybatis-starter.version>3.0.3</mybatis-starter.version>
         <reflections.version>0.10.2</reflections.version>
         <commons-io.version>2.15.1</commons-io.version>
@@ -86,9 +86,11 @@
         <revision>3.x</revision>
         <monitoring-engine.revision>3.3</monitoring-engine.revision>
         <swagger-core-jakarta.revision>2.2.20</swagger-core-jakarta.revision>
+        <velocity.revision>2.3</velocity.revision>
 
         <spring-ai.version>1.0.0</spring-ai.version>
         <ansj_seg.version>5.1.6</ansj_seg.version>
+        <flex-mark.version>0.64.0</flex-mark.version>
     </properties>
 
     <modules>

@@ -17,6 +17,9 @@ import {
   CancelAssociationDemandUrl,
   cancelDisassociate,
   cancelPreAndPostCaseUrl,
+  CaseAiBatchSaveUrl,
+  CaseAiChatUrl,
+  CaseAiTransformUrl,
   CheckCaseExportTaskUrl,
   checkFileIsUpdateUrl,
   CreateCaseModuleTreeUrl,
@@ -38,6 +41,7 @@ import {
   ExportXMindCaseUrl,
   exportXMindCheckUrl,
   FollowerCaseUrl,
+  GetAiConfigUrl,
   GetAssociatedCaseIdsUrl,
   GetAssociatedDebuggerUrl,
   GetAssociatedDrawerCaseUrl,
@@ -78,6 +82,7 @@ import {
   publicAssociatedCaseUrl,
   RecoverRecycleCaseListUrl,
   RestoreCaseListUrl,
+  SaveAiConfigUrl,
   SaveCaseMinderUrl,
   StopCaseExportUrl,
   TransferFileUrl,
@@ -88,6 +93,7 @@ import {
   UploadOrAssociationFileUrl,
 } from '@/api/requrls/case-management/featureCase';
 
+import type { AiCaseTransformResult, AiChatPrams, CaseAiBatchSaveParams, CaseAiChatConfig } from '@/models/ai';
 import type { BugListItem } from '@/models/bug-management';
 import type {
   AssociatedList,
@@ -503,4 +509,27 @@ export function getTestPlanExecuteCommentList(caseId: string) {
   return MSR.get<CommentItem[]>({ url: `${GetPlanExecuteCommentListUrl}/${caseId}` });
 }
 
-export default {};
+// 保存AI配置
+export function saveAiConfig(data: CaseAiChatConfig) {
+  return MSR.post({ url: SaveAiConfigUrl, data });
+}
+
+// 获取AI配置
+export function getAiConfig() {
+  return MSR.get<CaseAiChatConfig>({ url: GetAiConfigUrl });
+}
+
+// AI用例结构转换
+export function caseAiTransform(data: AiChatPrams) {
+  return MSR.post<AiCaseTransformResult>({ url: CaseAiTransformUrl, data });
+}
+
+// AI用例聊天
+export function caseAiChat(data: AiChatPrams) {
+  return MSR.post({ url: CaseAiChatUrl, data });
+}
+
+// AI用例批量保存
+export function caseAiBatchSave(data: CaseAiBatchSaveParams) {
+  return MSR.post({ url: CaseAiBatchSaveUrl, data });
+}

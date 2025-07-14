@@ -23,7 +23,7 @@
           @refresh="fetchData()"
         >
           <template #left>
-            <div>
+            <div class="flex">
               <a-button
                 v-permission="['FUNCTIONAL_CASE:READ+ADD']"
                 class="mr-[12px]"
@@ -33,6 +33,12 @@
                 {{ t('common.newCreate') }}
               </a-button>
               <ImportCase ref="importCaseRef" @init-modules="emit('initModules')" @confirm-import="confirmImport" />
+              <MsAiButton
+                v-if="aiStore.aiSourceNameList.length > 0"
+                class="ml-[12px]"
+                :text="t('settings.navbar.ai')"
+                @click="openAI"
+              />
             </div>
           </template>
           <template #right>
@@ -67,9 +73,12 @@
           @filter-change="filterChange"
         >
           <template #num="{ record }">
-            <span type="text" class="one-line-text cursor-pointer px-0 text-[rgb(var(--primary-5))]">
-              {{ record.num }}
-            </span>
+            <div class="flex items-center gap-[8px]">
+              <MsAiTag v-if="record.aiCreate" />
+              <span type="text" class="one-line-text cursor-pointer px-0 text-[rgb(var(--primary-5))]">
+                {{ record.num }}
+              </span>
+            </div>
           </template>
           <template #name="{ record }">
             <div class="one-line-text">{{ record.name }}</div>
@@ -116,7 +125,7 @@
           <template #moduleId="{ record }">
             <a-tree-select
               v-if="record.showModuleTree"
-              v-model:modelValue="record.moduleId"
+              v-model:model-value="record.moduleId"
               dropdown-class-name="tree-dropdown"
               class="param-input w-full"
               :data="caseTreeData"
@@ -383,6 +392,16 @@
     :platform-info="platformInfo"
     @save="saveThirdDemand"
   />
+  <!-- AI 生成 -->
+  <MsAIDrawer
+    v-if="isInitAiDrawer"
+    v-model:visible="aiDrawerVisible"
+    type="case"
+    :module-id="props.activeFolder"
+    :template-id="templateId"
+    @sync-feature-case="handleSyncFeatureCase"
+    @sync-success="initData()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -393,6 +412,8 @@
 
   import { getFilterCustomFields, MsAdvanceFilter } from '@/components/pure/ms-advance-filter';
   import { FilterFormItem, FilterResult } from '@/components/pure/ms-advance-filter/type';
+  import MsAiButton from '@/components/pure/ms-ai-button/index.vue';
+  import MsAiTag from '@/components/pure/ms-ai-tag/index.vue';
   import MsButton from '@/components/pure/ms-button/index.vue';
   import MsCacheWrapper from '@/components/pure/ms-cache-wrapper/index.vue';
   import MsDrawer from '@/components/pure/ms-drawer/index.vue';
@@ -448,6 +469,7 @@
   import useFeatureCaseStore from '@/store/modules/case/featureCase';
   import useMinderStore from '@/store/modules/components/minder-editor';
   import { ShowType } from '@/store/modules/components/minder-editor/types';
+  import useAIStore from '@/store/modules/setting/ai';
   import {
     characterLimit,
     downloadByteFile,
@@ -459,6 +481,7 @@
   } from '@/utils';
   import { hasAnyPermission } from '@/utils/permission';
 
+  import { AiCaseTransformResult } from '@/models/ai';
   import type {
     CaseManagementTable,
     CaseModuleQueryParams,
@@ -478,6 +501,8 @@
 
   import { executionResultMap, getCaseLevels, getTableFields, statusIconMap } from './utils';
   import { LabelValue } from '@arco-design/web-vue/es/tree-select/interface';
+
+  const MsAIDrawer = defineAsyncComponent(() => import('@/components/business/ms-ai-drawer/index.vue'));
 
   const cacheStore = useCacheStore();
 
@@ -505,6 +530,7 @@
   }>();
 
   const minderStore = useMinderStore();
+  const aiStore = useAIStore();
 
   const keyword = ref<string>('');
   const groupKeyword = ref<string>('');
@@ -514,6 +540,26 @@
   const modulesCount = computed(() => {
     return featureCaseStore.modulesCount;
   });
+
+  const isInitAiDrawer = ref<boolean>(false);
+  const aiDrawerVisible = ref<boolean>(false);
+  function openAI() {
+    isInitAiDrawer.value = true;
+    aiDrawerVisible.value = true;
+  }
+
+  function handleSyncFeatureCase(detail: AiCaseTransformResult) {
+    aiDrawerVisible.value = false;
+    router.push({
+      name: CaseManagementRouteEnum.CASE_MANAGEMENT_CASE_DETAIL,
+      query: {
+        aiCreate: 'Y',
+      },
+      state: {
+        detail: JSON.stringify(detail),
+      },
+    });
+  }
 
   function handleShowTypeChange(val: string | number | boolean) {
     minderStore.setShowType(MinderKeyEnum.FEATURE_CASE_MINDER, val as ShowType);
@@ -1560,6 +1606,7 @@
     });
   }
 
+  const templateId = ref<string>(''); // 模板ID
   // 处理自定义字段列
   let customFieldsColumns: Record<string, any>[] = [];
   const tableRef = ref<InstanceType<typeof MsBaseTable> | null>(null);
@@ -1569,6 +1616,7 @@
   async function getDefaultFields() {
     customFieldsColumns = [];
     const result = await getCaseDefaultFields(currentProjectId.value);
+    templateId.value = result.id;
     initDefaultFields.value = result.customFields;
     customFieldsColumns = initDefaultFields.value
       .filter((item: any) => !item.internal)
@@ -1802,6 +1850,9 @@
 
   // 获取三方需求
   onBeforeMount(async () => {
+    if (route.query.openAi === 'Y') {
+      openAI();
+    }
     try {
       const result = await getCaseRelatedInfo(currentProjectId.value);
       if (result && result.platform_key) {

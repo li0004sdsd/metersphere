@@ -5,6 +5,7 @@
   <pageConfig v-if="isInitPageConfig" v-show="activeTab === 'pageConfig'" />
   <authConfig v-if="isInitAuthConfig" v-show="activeTab === 'authConfig'" />
   <memoryCleanup v-if="isInitMemoryCleanup" v-show="activeTab === 'memoryCleanup'" />
+  <modelConfigCard v-if="isInitModelConfig" v-show="activeTab === 'modelConfig'" />
 </template>
 
 <script setup lang="ts">
@@ -22,6 +23,7 @@
   // 异步组件加载
   const baseConfig = defineAsyncComponent(() => import('./components/baseConfig.vue'));
   const pageConfig = defineAsyncComponent(() => import('./components/pageConfig.vue'));
+  const modelConfigCard = defineAsyncComponent(() => import('./components/modelConfigCard.vue'));
   const qrCodeConfig = defineAsyncComponent(() => import('./components/qrCodeConfig.vue'));
   const authConfig = defineAsyncComponent(() => import('./components/authConfig.vue'));
   const memoryCleanup = defineAsyncComponent(() => import('./components/memoryCleanup.vue'));
@@ -34,9 +36,15 @@
   const isInitAuthConfig = ref(activeTab.value === 'authConfig');
   const isInitMemoryCleanup = ref(activeTab.value === 'memoryCleanup');
   const isInitQrCodeConfig = ref(activeTab.value === 'qrCodeConfig');
+  const isInitModelConfig = ref(activeTab.value === 'modelConfig');
   const tabList = ref([
     { key: 'baseConfig', title: t('system.config.baseConfig'), permission: ['SYSTEM_PARAMETER_SETTING_BASE:READ'] },
     { key: 'pageConfig', title: t('system.config.pageConfig'), permission: ['SYSTEM_PARAMETER_SETTING_DISPLAY:READ'] },
+    {
+      key: 'modelConfig',
+      title: t('system.config.modelConfig.modelConfigSet'),
+      permission: ['SYSTEM_PARAMETER_SETTING_AI_MODEL:READ'],
+    },
     {
       key: 'qrCodeConfig',
       title: t('system.config.qrCodeConfig'),
@@ -59,8 +67,10 @@
         isInitAuthConfig.value = true;
       } else if (val === 'memoryCleanup' && !isInitMemoryCleanup.value) {
         isInitMemoryCleanup.value = true;
-      } else if (val === 'qrCodeConfig' && !isInitMemoryCleanup.value) {
+      } else if (val === 'qrCodeConfig' && !isInitQrCodeConfig.value) {
         isInitQrCodeConfig.value = true;
+      } else if (val === 'modelConfig' && !isInitModelConfig.value) {
+        isInitModelConfig.value = true;
       }
     },
     {
@@ -72,7 +82,7 @@
   async function getXpackTab() {
     await licenseStore.getValidateLicense();
     if (!licenseStore.hasLicense()) {
-      const excludes = ['baseConfig', 'memoryCleanup'];
+      const excludes = ['baseConfig', 'memoryCleanup', 'modelConfig'];
       tabList.value = tabList.value.filter((item: any) => excludes.includes(item.key));
     }
   }

@@ -8,6 +8,9 @@ import {
   AddMockUrl,
   AddModuleUrl,
   AddShareUrl,
+  ApiAiCaseBatchSaveUrl,
+  ApiAiChatUrl,
+  ApiAiTransformUrl,
   BatchCleanOutApiUrl,
   BatchDeleteCaseUrl,
   BatchDeleteDefinitionUrl,
@@ -49,6 +52,7 @@ import {
   ExecuteCaseUrl,
   ExportDefinitionUrl,
   ExportShareDefinitionUrl,
+  GetAiConfigUrl,
   GetApiDownloadFileUrl,
   GetCaseBatchExportParamsUrl,
   GetCaseDetailUrl,
@@ -84,6 +88,7 @@ import {
   RecoverOperationHistoryUrl,
   RecycleCasePageUrl,
   RunCaseUrl,
+  SaveAiConfigUrl,
   SaveOperationHistoryUrl,
   shareDetailUrl,
   shareModuleCountUrl,
@@ -116,6 +121,12 @@ import {
   UploadTempMockFileUrl,
 } from '@/api/requrls/api-test/management';
 
+import type {
+  ApiAiChatConfig,
+  ApiAiChatParams,
+  ApiCaseAiBatchSaveParams,
+  ApiCaseAiBatchSaveResponse,
+} from '@/models/ai';
 import { ApiCaseReportDetail, ExecuteRequestParams, PluginConfig } from '@/models/apiTest/common';
 import {
   AddApiCaseParams,
@@ -749,4 +760,29 @@ export function getShareDefinitionDetail(id: string | number) {
 // 用例执行率统计
 export function getCaseStatistics(data: string[]) {
   return MSR.post<ApiCaseStatisticsItem[]>({ url: CaseStatisticsUrl, data });
+}
+
+// 接口用例AI配置保存
+export function saveAiConfig(data: ApiAiChatConfig) {
+  return MSR.post({ url: SaveAiConfigUrl, data });
+}
+
+// 接口用例AI配置获取
+export function getAiConfig() {
+  return MSR.get<ApiAiChatConfig>({ url: GetAiConfigUrl });
+}
+
+// 接口用例AI聊天
+export function apiAiChat(data: ApiAiChatParams) {
+  return MSR.post({ url: ApiAiChatUrl, data });
+}
+
+// 接口用例AI转换
+export function apiAiTransform(data: ApiAiChatParams) {
+  return MSR.post<ApiCaseDetail>({ url: ApiAiTransformUrl, data });
+}
+
+// 接口用例AI批量保存
+export function apiAiCaseBatchSave(data: ApiCaseAiBatchSaveParams) {
+  return MSR.post<ApiCaseAiBatchSaveResponse>({ url: ApiAiCaseBatchSaveUrl, data });
 }

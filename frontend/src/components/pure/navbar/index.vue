@@ -55,6 +55,15 @@
       <TopMenu />
     </div>
     <ul v-if="!props.isPreview && !props.hideRight" class="right-side">
+      <li>
+        <a-tooltip :content="t('settings.navbar.ai')" position="br">
+          <a-button v-if="aiStore.aiSourceNameList.length > 0" type="secondary" @click="openAI">
+            <template #icon>
+              <svg-icon width="18px" height="18px" name="ai" />
+            </template>
+          </a-button>
+        </a-tooltip>
+      </li>
       <!-- <li>
         <a-tooltip :content="t('settings.navbar.search')">
           <a-button type="secondary">
@@ -179,6 +188,7 @@
       </li>
     </ul>
   </div>
+  <MsAIDrawer v-if="isInitAiDrawer" v-model:visible="aiDrawerVisible" type="chat" />
   <TaskCenterDrawer v-if="taskCenterVisible" v-model:visible="taskCenterVisible" />
   <MessageCenterDrawer v-if="messageCenterVisible" v-model:visible="messageCenterVisible" />
   <AddProjectModal :visible="projectVisible" @cancel="projectVisible = false" />
@@ -204,6 +214,7 @@
   import useLocale from '@/locale/useLocale';
   import useAppStore from '@/store/modules/app';
   import useGlobalStore from '@/store/modules/global';
+  import useAIStore from '@/store/modules/setting/ai';
   import useUserStore from '@/store/modules/user';
   import { getFirstRouteNameByPermission, hasAnyPermission } from '@/utils/permission';
   import { setDarkTheme, watchStyle, watchTheme } from '@/utils/theme';
@@ -217,6 +228,7 @@
   const MessageCenterDrawer = defineAsyncComponent(
     () => import('@/components/business/ms-message/MessageCenterDrawer.vue')
   );
+  const MsAIDrawer = defineAsyncComponent(() => import('@/components/business/ms-ai-drawer/index.vue'));
 
   const props = defineProps<{
     isPreview?: boolean;
@@ -228,6 +240,7 @@
   const appStore = useAppStore();
   const userStore = useUserStore();
   const globalStore = useGlobalStore();
+  const aiStore = useAIStore();
   const route = useRoute();
   const router = useRouter();
   const { t } = useI18n();
@@ -322,6 +335,13 @@
 
   function goMessageCenter() {
     messageCenterVisible.value = true;
+  }
+
+  const isInitAiDrawer = ref<boolean>(false);
+  const aiDrawerVisible = ref<boolean>(false);
+  function openAI() {
+    isInitAiDrawer.value = true;
+    aiDrawerVisible.value = true;
   }
 
   const isSun = ref(!appStore.isDarkTheme);

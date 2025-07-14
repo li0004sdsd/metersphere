@@ -1,14 +1,17 @@
 <template>
   <div class="overflow-hidden p-[16px_22px]">
-    <div :class="['mb-[16px]', 'flex', 'items-center', props.isApi ? 'justify-between' : 'justify-end']">
-      <a-button
-        v-show="props.isApi"
-        v-permission="['PROJECT_API_DEFINITION_CASE:READ+ADD']"
-        type="primary"
-        @click="createCase"
-      >
-        {{ t('caseManagement.featureCase.creatingCase') }}
-      </a-button>
+    <div :class="['mb-[16px]', 'flex', 'items-center', 'justify-between']">
+      <div class="flex gap-[12px]">
+        <a-button
+          v-show="props.isApi"
+          v-permission="['PROJECT_API_DEFINITION_CASE:READ+ADD']"
+          type="primary"
+          @click="createCase"
+        >
+          {{ t('caseManagement.featureCase.creatingCase') }}
+        </a-button>
+        <MsAiButton v-if="aiStore.aiSourceNameList.length > 0" :text="t('settings.navbar.ai')" @click="openAI" />
+      </div>
       <MsAdvanceFilter
         ref="msAdvanceFilterRef"
         v-model:keyword="keyword"
@@ -42,13 +45,18 @@
         </div>
       </template>
       <template #num="{ record }">
-        <div class="flex items-center">
-          <MsButton type="text" @click="openCaseTab(record)">
-            {{ record.num }}
+        <div class="flex min-w-0 flex-nowrap items-center gap-[8px]">
+          <MsAiTag v-if="record.aiCreate" />
+          <MsButton class="!mr-0 flex-1 overflow-hidden" type="text" @click="openCaseTab(record)">
+            <a-tooltip :content="record.num.toString()" :mouse-enter-delay="300">
+              <div class="one-line-text">
+                {{ record.num }}
+              </div>
+            </a-tooltip>
           </MsButton>
           <a-tooltip v-if="record.apiChange" class="ms-tooltip-white">
             <!-- 接口参数发生变更提示 -->
-            <MsIcon type="icon-icon_warning_colorful" size="16" />
+            <MsIcon class="flex-shrink-0" type="icon-icon_warning_colorful" size="16" />
             <template #content>
               <div class="flex flex-row">
                 <span class="text-[var(--color-text-1)]">
@@ -313,6 +321,15 @@
     @sync="syncParamsHandler"
     @load-list="loadCaseListAndResetSelector"
   />
+  <!-- AI 生成 -->
+  <MsAIDrawer
+    v-if="isInitAiDrawer"
+    v-model:visible="aiDrawerVisible"
+    type="api"
+    :api-definition-id="props.apiDetail?.id"
+    @sync-api-case="handleSyncApiCase"
+    @sync-success="loadCaseList()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -322,6 +339,8 @@
 
   import MsAdvanceFilter from '@/components/pure/ms-advance-filter/index.vue';
   import { FilterFormItem, FilterResult } from '@/components/pure/ms-advance-filter/type';
+  import MsAiButton from '@/components/pure/ms-ai-button/index.vue';
+  import MsAiTag from '@/components/pure/ms-ai-tag/index.vue';
   import MsButton from '@/components/pure/ms-button/index.vue';
   import { TabItem } from '@/components/pure/ms-editable-tab/types';
   import MsBaseTable from '@/components/pure/ms-table/base-table.vue';
@@ -361,6 +380,7 @@
   import useTableStore from '@/hooks/useTableStore';
   import useAppStore from '@/store/modules/app';
   import useCacheStore from '@/store/modules/cache/cache';
+  import useAIStore from '@/store/modules/setting/ai';
   import { characterLimit, operationWidth } from '@/utils';
   import { hasAnyPermission } from '@/utils/permission';
 
@@ -385,6 +405,8 @@
   import type { RequestParam } from '@/views/api-test/components/requestComposition/index.vue';
   import { parseRequestBodyFiles } from '@/views/api-test/components/utils';
 
+  const MsAIDrawer = defineAsyncComponent(() => import('@/components/business/ms-ai-drawer/index.vue'));
+
   defineOptions({
     name: CacheTabTypeEnum.API_TEST_CASE_TABLE,
   });
@@ -408,11 +430,19 @@
 
   const route = useRoute();
   const appStore = useAppStore();
+  const aiStore = useAIStore();
   const { t } = useI18n();
   const tableStore = useTableStore();
   const { openModal } = useModal();
 
   const keyword = ref('');
+
+  const isInitAiDrawer = ref<boolean>(false);
+  const aiDrawerVisible = ref<boolean>(false);
+  function openAI() {
+    isInitAiDrawer.value = true;
+    aiDrawerVisible.value = true;
+  }
 
   const hasOperationPermission = computed(() =>
     hasAnyPermission([
@@ -432,7 +462,7 @@
         sortDirections: ['ascend', 'descend'],
         sorter: true,
       },
-      width: 150,
+      width: 170,
       columnSelectorDisabled: true,
     },
     {
@@ -1071,6 +1101,11 @@
     createAndEditCaseDrawerRef.value?.open(props.apiDetail?.id as string);
   }
 
+  function handleSyncApiCase(detail: ApiCaseDetail) {
+    aiDrawerVisible.value = false;
+    createAndEditCaseDrawerRef.value?.open(props.apiDetail?.id as string, detail, false, true);
+  }
+
   function openCaseTab(record: ApiCaseDetail) {
     emit('openCaseTab', record);
   }
@@ -1210,6 +1245,10 @@
 
     if (route.query.home) {
       propsRes.value.filter = { ...NAV_NAVIGATION[route.query.home as WorkNavValueEnum] };
+    }
+
+    if (route.query.openAi === 'Y') {
+      openAI();
     }
   });
 
