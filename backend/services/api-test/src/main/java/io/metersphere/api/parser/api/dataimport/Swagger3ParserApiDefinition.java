@@ -629,8 +629,7 @@ private JsonSchemaItem parseSchemaByType(Schema<?> schema, Set refModelSet) {
     }
 
     private JsonSchemaItem createDefaultJsonSchemaItem(Schema<?> schema) {
-        JsonSchemaItem jsonSchemaItem = new JsonSchemaItem();
-        jsonSchemaItem.setId(IDGenerator.nextStr());
+        JsonSchemaItem jsonSchemaItem = parseSchemaItem(schema);
         if (StringUtils.isNotBlank(schema.getType())) {
             jsonSchemaItem.setType(schema.getType());
         }
@@ -673,6 +672,7 @@ private JsonSchemaItem parseSchemaByType(Schema<?> schema, Set refModelSet) {
             properties = refSchema.getProperties();
             // 记录引用的对象
             refModelSet.add(objectSchema.get$ref());
+            jsonSchemaItem.setRequired(refSchema.getRequired());
         }
         if (MapUtils.isNotEmpty(properties)) {
             properties.forEach((key, value) -> {

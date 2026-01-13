@@ -35,21 +35,19 @@
         @change="handleTabChange"
       />
     </div>
-    <div class="content w-full">
+    <div class="content flex w-full flex-col">
       <div v-show="activeKey === EnvTabTypeEnum.ENVIRONMENT_PARAM">
         <EnvParamsTab v-model:keyword="envKeyword" />
       </div>
       <HttpTab v-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_HTTP" />
       <DataBaseTab v-else-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_DATABASE" />
       <HostTab v-else-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_HOST" ref="hostTabRef" />
-      <div
+      <PreAndPostTab
         v-else-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_PRE || activeKey === EnvTabTypeEnum.ENVIRONMENT_POST"
-        class="h-full"
-      >
-        <PreAndPostTab :active-type="activeKey" />
-      </div>
+        :active-type="activeKey"
+      />
 
-      <AssertTab v-else-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_ASSERT" />
+      <AssertTab v-else-if="activeKey === EnvTabTypeEnum.ENVIRONMENT_ASSERT" class="flex flex-col" />
       <template v-for="item in envPluginList" :key="item.pluginId">
         <PluginTab
           v-if="activeKey === item.pluginId"
@@ -93,9 +91,15 @@
   import { hasAnyPermission } from '@/utils/permission';
 
   import { ContentTabItem, EnvPluginListItem } from '@/models/projectManagement/environmental';
+  import { ResponseAssertionType } from '@/enums/apiEnum';
   import { EnvTabTypeEnum } from '@/enums/envEnum';
 
-  import { defaultHeaderParamsItem } from '@/views/api-test/components/config';
+  import {
+    defaultHeaderParamsItem,
+    jsonPathDefaultParamItem,
+    regexDefaultParamItem,
+    xpathAssertParamsItem,
+  } from '@/views/api-test/components/config';
   import { filterKeyValParams } from '@/views/api-test/components/utils';
 
   const leaveTitle = 'common.tip';
@@ -210,6 +214,28 @@
         headers: filterKeyValParams(e.headers, defaultHeaderParamsItem, true).validParams,
       };
     });
+
+    const assertionConfig = {
+      assertions: paramsConfig.assertionConfig.assertions.map((a) => {
+        if (a.assertionType === ResponseAssertionType.RESPONSE_BODY) {
+          return {
+            ...a,
+            jsonPathAssertion: {
+              assertions: filterKeyValParams(a.jsonPathAssertion.assertions, jsonPathDefaultParamItem, true)
+                .validParams,
+            },
+            xpathAssertion: {
+              ...a.xpathAssertion,
+              assertions: filterKeyValParams(a.xpathAssertion.assertions, xpathAssertParamsItem, true).validParams,
+            },
+            regexAssertion: {
+              assertions: filterKeyValParams(a.regexAssertion.assertions, regexDefaultParamItem, true).validParams,
+            },
+          };
+        }
+        return a;
+      }),
+    };
     if (isNew) {
       store.currentEnvDetailInfo.name = store.currentEnvDetailInfo.name
         ? store.currentEnvDetailInfo.name
@@ -221,6 +247,7 @@
       config: {
         ...paramsConfig,
         httpConfig: httpConfigList,
+        assertionConfig,
       },
     };
   }
@@ -349,7 +376,6 @@
 
       overflow-y: auto;
       padding: 0 16px;
-      height: 100%;
       max-height: calc(100% - 320px);
       background-color: var(--color-text-fff);
     }

@@ -35,7 +35,7 @@
       </a-form-item>
       <a-form-item :label="t('apiTestDebug.requestModule')" class="mb-0">
         <a-tree-select
-          v-model:modelValue="saveModalForm.moduleId"
+          v-model:model-value="saveModalForm.moduleId"
           :filter-tree-node="filterTreeNode"
           :data="apiModuleTree"
           :field-names="{ title: 'name', key: 'id', children: 'children' }"
@@ -51,9 +51,18 @@
     </a-form>
     <template #footer>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-[4px]">
-          <a-checkbox v-model:model-value="saveModalForm.saveApiAsCase"></a-checkbox>
-          {{ t('apiScenario.syncSaveAsCase') }}
+        <div>
+          <div class="flex items-center gap-[4px]">
+            <a-checkbox v-model:model-value="saveModalForm.saveApiAsCase"></a-checkbox>
+            {{ t('apiScenario.syncSaveAsCase') }}
+          </div>
+          <div v-if="saveModalForm.saveApiAsCase && props.isScenario" class="flex items-center">
+            <span class="text-[12px]">{{ t('apiScenario.changeStepTo') }}</span>
+            <a-radio-group v-model:model-value="saveModalForm.changeStepTo" size="mini">
+              <a-radio value="quote" class="!mr-0 text-[12px]">{{ `${t('common.quote')}${t('common.case')}` }}</a-radio>
+              <a-radio value="copy" class="text-[12px]">{{ `${t('common.copy')}${t('common.case')}` }}</a-radio>
+            </a-radio-group>
+          </div>
         </div>
         <div class="flex items-center gap-[12px]">
           <a-button type="secondary" :disabled="saveLoading" @click="handleSaveApiCancel">
@@ -71,7 +80,13 @@
 
   import { MsTreeNodeData } from '@/components/business/ms-tree/types';
 
-  import { addCase, addDefinition, getModuleTreeOnlyModules } from '@/api/modules/api-test/management';
+  import {
+    addCase,
+    addDefinition,
+    debugFileCopy,
+    definitionFileCopy,
+    getModuleTreeOnlyModules,
+  } from '@/api/modules/api-test/management';
   import { useI18n } from '@/hooks/useI18n';
   import useAppStore from '@/store/modules/app';
   import { filterTreeNode } from '@/utils';
@@ -81,13 +96,21 @@
 
   import { defaultResponseItem } from '@/views/api-test/components/config';
   import type { RequestParam as ApiDefinitionRequestParam } from '@/views/api-test/components/requestComposition/index.vue';
+  import { parseRequestBodyFiles } from '@/views/api-test/components/utils';
   import type { RequestParam } from '@/views/api-test/scenario/components/common/customApiDrawer.vue';
   import type { FormInstance } from '@arco-design/web-vue';
 
   const props = defineProps<{
     detail: RequestParam | ApiDefinitionRequestParam;
+    isScenario?: boolean;
   }>();
-  const emit = defineEmits(['close']);
+  const emit = defineEmits<{
+    (e: 'close'): void;
+    (
+      e: 'saveCaseSuccess',
+      data: { id: string; type: 'quote' | 'copy'; resourceNum: number; resourceName: string }
+    ): void;
+  }>();
 
   const appStore = useAppStore();
   const { t } = useI18n();
@@ -95,11 +118,18 @@
   const visible = defineModel<boolean>('visible', {
     required: true,
   });
-  const saveModalForm = ref({
+  const saveModalForm = ref<{
+    name: string;
+    path: string;
+    moduleId: string;
+    saveApiAsCase: boolean;
+    changeStepTo: 'quote' | 'copy';
+  }>({
     name: '',
     path: '',
     moduleId: 'root',
     saveApiAsCase: false,
+    changeStepTo: 'quote',
   });
   const saveModalFormRef = ref<FormInstance>();
   const saveLoading = ref(false);
@@ -130,6 +160,24 @@
       console.log(error);
       path = saveModalForm.value.path;
     }
+    let copyFileIds: any[] = [];
+    if (props.detail.protocol === 'HTTP') {
+      // 另存case需要复制定义的文件
+      let copyFilesMap: Record<string, any> = {};
+      const fileIds = parseRequestBodyFiles(props.detail.body, [], [], []).uploadFileIds;
+      if (fileIds.length > 0) {
+        try {
+          copyFilesMap = await definitionFileCopy({
+            resourceId: id,
+            fileIds,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.log(error);
+        }
+      }
+      copyFileIds = parseRequestBodyFiles(props.detail.body, [], [], [], copyFilesMap).uploadFileIds;
+    }
     const params: AddApiCaseParams = {
       name: saveModalForm.value.name,
       projectId: appStore.currentProjectId,
@@ -142,10 +190,16 @@
       priority: 'P0',
       status: RequestCaseStatus.PROCESSING,
       tags: [],
-      uploadFileIds: props.detail.uploadFileIds || [],
+      uploadFileIds: copyFileIds,
       linkFileIds: props.detail.linkFileIds || [],
     };
-    await addCase(params);
+    const res = await addCase(params);
+    emit('saveCaseSuccess', {
+      id: res.id,
+      type: saveModalForm.value.changeStepTo,
+      resourceNum: res.num,
+      resourceName: res.name,
+    });
   }
 
   /**
@@ -164,6 +218,25 @@
         console.log(error);
         path = saveModalForm.value.path;
       }
+
+      let copyFileIds: any[] = [];
+      if (props.detail.protocol === 'HTTP') {
+        // 调试另存定义需要复制文件
+        let copyFilesMap: Record<string, any> = {};
+        const fileIds = parseRequestBodyFiles(props.detail.body, [], [], []).uploadFileIds;
+        if (fileIds.length > 0) {
+          try {
+            copyFilesMap = await debugFileCopy({
+              resourceId: (props.detail as any).id as string,
+              fileIds,
+            });
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log(error);
+          }
+        }
+        copyFileIds = parseRequestBodyFiles(props.detail.body, [], [], [], copyFilesMap).uploadFileIds;
+      }
       const res = await addDefinition({
         ...saveModalForm.value,
         path,
@@ -179,7 +252,7 @@
           url: path,
           path,
         },
-        uploadFileIds: props.detail.uploadFileIds || [],
+        uploadFileIds: copyFileIds,
         linkFileIds: props.detail.linkFileIds || [],
         response: [defaultResponseItem],
         method: props.detail.method,
@@ -213,8 +286,19 @@
     });
   }
 
+  watch(
+    () => visible.value,
+    (newVal) => {
+      if (newVal) {
+        saveModalForm.value.path = props.detail.url || props.detail.path;
+      }
+    },
+    {
+      immediate: true,
+    }
+  );
+
   onBeforeMount(() => {
-    saveModalForm.value.path = props.detail.url || props.detail.path;
     initApiModuleTree(props.detail.protocol);
   });
 </script>

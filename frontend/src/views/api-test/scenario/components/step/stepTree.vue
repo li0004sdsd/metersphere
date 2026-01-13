@@ -400,6 +400,8 @@
       v-if="tempApiDetail"
       v-model:visible="saveNewApiModalVisible"
       :detail="tempApiDetail"
+      is-scenario
+      @save-case-success="handleSaveCaseSuccess"
       @close="() => (tempApiDetail = undefined)"
     ></saveAsApiModal>
     <a-modal
@@ -795,6 +797,27 @@
   const saveNewApiModalVisible = ref(false);
   const tempApiDetail = ref<RequestParam>();
 
+  function handleSaveCaseSuccess(res: {
+    id: string;
+    type: 'quote' | 'copy';
+    resourceNum: number;
+    resourceName: string;
+  }) {
+    if (tempApiDetail.value) {
+      const realStep = findNodeByKey<ScenarioStepItem>(steps.value, tempApiDetail.value.uniqueId, 'uniqueId');
+      if (realStep) {
+        realStep.name = res.resourceName;
+        realStep.resourceId = res.id;
+        realStep.resourceNum = res.resourceNum;
+        realStep.resourceName = res.resourceName;
+        realStep.stepType = ScenarioStepType.API_CASE;
+        realStep.refType = res.type === 'copy' ? ScenarioStepRefType.COPY : ScenarioStepRefType.REF;
+        realStep.originProjectId = appStore.currentProjectId;
+        scenario.value.unSaved = true;
+      }
+    }
+  }
+
   const saveCaseModalVisible = ref(false);
   const saveCaseLoading = ref(false);
   const saveCaseModalForm = ref({
@@ -1065,6 +1088,7 @@
         const fileParams = scenario.value.stepFileParam[node.id];
         tempApiDetail.value = {
           ...detail,
+          uniqueId: node.uniqueId,
           customizeRequest: false, // 另存为新接口时，不是自定义请求
           uploadFileIds: fileParams?.uploadFileIds || [],
           linkFileIds: fileParams?.linkFileIds || [],

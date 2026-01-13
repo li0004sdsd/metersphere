@@ -30,6 +30,7 @@ export default function useMinderBaseApi({ hasEditPermission }: { hasEditPermiss
   const descTags = [stepTag, textDescTag];
   const caseChildTags = [prerequisiteTag, stepTag, textDescTag, remarkTag];
   const caseOffspringTags = [...caseChildTags, stepTag, stepExpectTag, textDescTag, remarkTag];
+  const caseWithDetailTags = [prerequisiteTag, textDescTag, remarkTag];
 
   /**
    * 是否可展示浮动菜单
@@ -392,7 +393,15 @@ export default function useMinderBaseApi({ hasEditPermission }: { hasEditPermiss
     } else if (value === stepTag) {
       // 步骤描述节点插入后，插入子节点
       nextTick(() => {
-        insertSpecifyNode('AppendChildNode', stepExpectTag);
+        const node = window.minder.getSelectedNode();
+        const isAllowAutoPushExpectTag =
+          (node.data?.resource?.includes(stepTag) || node.data?.resource?.includes(textDescTag)) &&
+          !node.children?.length;
+
+        if (isAllowAutoPushExpectTag) {
+          insertSpecifyNode('AppendChildNode', stepExpectTag);
+        }
+
         nextTick(() => {
           // 取消选中期望结果节点，选中步骤描述节点
           const expectNode: MinderJsonNode = window.minder.getSelectedNode();
@@ -774,6 +783,7 @@ export default function useMinderBaseApi({ hasEditPermission }: { hasEditPermiss
     descTags,
     caseChildTags,
     caseOffspringTags,
+    caseWithDetailTags,
     insertSiblingMenus,
     insertSonMenus,
     insertNode,

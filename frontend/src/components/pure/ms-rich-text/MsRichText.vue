@@ -498,6 +498,16 @@
             });
           });
         },
+        handleDOMEvents: {
+          keydown(view, event) {
+            event.stopPropagation();
+            return false;
+          },
+          keyup: (view, event) => {
+            event.stopPropagation();
+            return false;
+          },
+        },
       },
     });
   });
@@ -584,7 +594,15 @@
 <template>
   <div class="rich-wrapper flex w-full">
     <AttachmentSelectorModal v-model:visible="attachmentSelectorModal" @select="onAttachmentSelect" />
-    <RichTextEditor v-if="editor" :editor="editor" :content-styles="contentStyles" :locale="currentLocale" />
+    <RichTextEditor
+      v-if="editor"
+      :editor="editor"
+      :content-styles="contentStyles"
+      :locale="currentLocale"
+      @paste.stop
+      @cut.stop
+      @copy.stop
+    />
   </div>
 </template>
 

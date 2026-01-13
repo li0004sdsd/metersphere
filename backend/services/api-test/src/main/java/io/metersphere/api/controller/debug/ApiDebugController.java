@@ -1,15 +1,18 @@
 package io.metersphere.api.controller.debug;
 
 import io.metersphere.api.curl.domain.CurlEntity;
+import io.metersphere.api.curl.handler.HttpBodyHandler;
 import io.metersphere.api.curl.util.CurlParserUtil;
 import io.metersphere.api.domain.ApiDebug;
 import io.metersphere.api.dto.debug.*;
 import io.metersphere.api.dto.request.ApiEditPosRequest;
 import io.metersphere.api.dto.request.ApiImportCurlRequest;
 import io.metersphere.api.dto.request.ApiTransferRequest;
+import io.metersphere.api.dto.scenario.ApiFileCopyRequest;
 import io.metersphere.api.service.ApiFileResourceService;
 import io.metersphere.api.service.debug.ApiDebugLogService;
 import io.metersphere.api.service.debug.ApiDebugService;
+import io.metersphere.api.utils.JSONUtil;
 import io.metersphere.project.service.FileModuleService;
 import io.metersphere.sdk.constants.DefaultRepositoryDir;
 import io.metersphere.sdk.constants.PermissionConstants;
@@ -137,11 +140,21 @@ public class ApiDebugController {
         CurlEntity parse = CurlParserUtil.parse(request.getCurl());
         Optional.ofNullable(parse.getBody()).ifPresent(body -> {
             if (parse.getMethod() == CurlEntity.Method.GET) {
-                Map map = JSON.parseMap(JSON.toFormatJSONString(body));
-                parse.getQueryParams().putAll(map);
+                if(HttpBodyHandler.isJSON(body.toString())) {
+                    Map map = JSON.parseMap(JSON.toFormatJSONString(body));
+                    parse.getQueryParams().putAll(map);
+                }
             }
         });
         return parse;
+    }
+
+    @PostMapping("/file/copy")
+    @Operation(summary = "接口测试-接口调试-另存时, 复制文件")
+    @RequiresPermissions(value = {PermissionConstants.PROJECT_API_DEBUG_UPDATE, PermissionConstants.PROJECT_API_DEBUG_ADD},
+            logical = Logical.OR)
+    public Map<String, String> copyFile(@Validated @RequestBody ApiFileCopyRequest request) {
+        return apiDebugService.copyFile(request);
     }
 
 }

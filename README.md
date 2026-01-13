@@ -9,10 +9,14 @@
   <a href="https://gitee.com/fit2cloud-feizhiyun/MeterSphere"><img src="https://gitee.com/fit2cloud-feizhiyun/MeterSphere/badge/star.svg?theme=gvp" alt="Gitee Stars"></a>
   <a href="https://gitcode.com/feizhiyun/MeterSphere"><img src="https://gitcode.com/feizhiyun/MeterSphere/star/badge.svg" alt="GitCode Stars"></a><br>
 </p>
+<p align="center">
+  <a href="https://trendshift.io/repositories/1557" target="_blank"><img src="https://trendshift.io/api/badge/repositories/1557" alt="metersphere%2Fmetersphere | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+</p>
 <hr />
 
 MeterSphere  是新一代的开源持续测试工具，让软件测试工作更简单、更高效，不再成为持续交付的瓶颈。
 
+-   **AI 赋能**：内置 AI 助手，支持 AI 生成功能用例、接口用例等，提升测试效率；
 -   **测试管理**：从测试用例管理，到测试计划执行、缺陷管理、测试报告生成，具有远超 TestLink 等传统测试管理工具的使用体验；
 -   **接口测试**：集 Postman 的易用与 JMeter 的灵活于一体，接口调试、接口定义、接口 Mock、场景自动化、接口报告，你想要的都有；
 -   **团队协作**：采用“系统-组织-项目”分层设计理念，帮助用户摆脱单机测试工具的束缚，方便快捷地开展团队协作；
@@ -36,9 +40,8 @@ docker run -d -p 8081:8081 --name=metersphere -v ~/.metersphere/data:/opt/meters
 -   [案例研究](/use-cases.md)
 -   [论坛求助](https://bbs.fit2cloud.com/c/ms/8)
 -   技术交流群
-     
 
-![image](https://metersphere.oss-cn-hangzhou.aliyuncs.com/img/wechat-helper.png)
+<img width="180" height="180" alt="contact_ms_qr" src="https://metersphere.oss-cn-hangzhou.aliyuncs.com/img/wechat-helper.png" />
 
 
 ## UI 展示
@@ -93,22 +96,24 @@ MeterSphere 产品版本分为社区版和企业版，详情请参见：[MeterSp
 - [TAPD](https://www.tapd.cn/) 需求和缺陷同步插件：通过调用 TAPD 企业版本提供的 API 接口（[TAPD 企业版（API）申请](https://jsj.top/f/Lpk1sh)），将 MeterSphere 的测试用例和 TAPD 需求项进行关联，以及将 MeterSphere 和 TAPD 两个应用的缺陷进行双向同步。
 - 禅道需求和缺陷同步插件：将 MeterSphere 的测试用例和禅道需求项进行关联，以及将 MeterSphere 和禅道两个应用的缺陷进行双向同步。
 - JIRA 需求和缺陷同步插件：将 MeterSphere 的测试用例和 JIRA 需求项进行关联，以及将 MeterSphere 和 JIRA 两个应用的缺陷进行双向同步。
-- [Jenkins](https://www.jenkins.io/) 持续集成插件：实现在 Jenkins 流水线中触发并自动执行 MeteSphere 测试计划。
+- [Jenkins](https://www.jenkins.io/) 持续集成插件：实现在 Jenkins 流水线中触发并自动执行 MeterSphere 测试计划。
 - 自定义数据库驱动：支持对 达梦、Oracle、SQLite、Microsoft SQL Server 等数据库的连接和数据访问。
 - 接口协议插件：实现接口测试中对 TCP、Dubbo、MQTT 等协议的支持。
 - IDE 插件：[MeterSphere APl Debugger 插件](https://github.com/metersphere/metersphere-idea-plugin/) 是 MeterSphere 提供的 InteliJ IDEA 插件，它可以快速提取 API 特征，实时进行 API 调试并生成 API 文档，一键同步到 MeterSphere 进行管理。
 
 ## 飞致云的其他明星项目
 
+- [DataEase](https://github.com/dataease/dataease/) - 人人可用的开源 BI 工具
+- [SQLBot](https://github.com/dataease/SQLBot) - 基于大模型和 RAG 的开源智能问数系统
 - [1Panel](https://github.com/1panel-dev/1panel/) - 现代化、开源的 Linux 服务器运维管理面板
-- [MaxKB](https://github.com/1panel-dev/maxkb) - 基于 LLM 大语言模型的知识库问答系统
+- [MaxKB](https://github.com/1panel-dev/MaxKB/) - 强大易用的企业级智能体平台
 - [JumpServer](https://github.com/jumpserver/jumpserver/) - 广受欢迎的开源堡垒机
-- [DataEase](https://github.com/dataease/dataease/) - 人人可用的开源数据可视化分析工具
+- [Cordys CRM](https://github.com/1Panel-dev/CordysCRM) - 新一代的开源 AI CRM 系统
 - [Halo](https://github.com/halo-dev/halo/) - 强大易用的开源建站工具
 
 ## License & Copyright
 
-Copyright (c) 2014-2025 飞致云 FIT2CLOUD, All rights reserved.
+Copyright (c) 2014-2026 飞致云 FIT2CLOUD, All rights reserved.
 
 Licensed under The GNU General Public License version 3 (GPLv3)  (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

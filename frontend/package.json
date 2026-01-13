@@ -93,6 +93,7 @@
     "xml-beautify": "^1.2.3",
     "xpath": "^0.0.34"
   },
+
   "devDependencies": {
     "@arco-plugins/vite-vue": "^1.4.5",
     "@commitlint/cli": "^17.8.1",

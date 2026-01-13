@@ -1,7 +1,7 @@
 <template>
   <div class="h-full py-[16px]">
     <MsMinderEditor
-      v-model:activeExtraKey="activeExtraKey"
+      v-model:active-extra-key="activeExtraKey"
       v-model:extra-visible="extraVisible"
       v-model:loading="loading"
       v-model:import-json="importJson"
@@ -51,23 +51,34 @@
         </a-tooltip>
       </template>
       <template #extractTabContent>
-        <baseInfo
-          v-if="activeExtraKey === 'baseInfo'"
-          ref="baseInfoRef"
-          :loading="baseInfoLoading"
-          :active-case="activeCase"
-          @init-template="(id) => (templateId = id)"
-          @cancel="handleBaseInfoCancel"
-          @saved="handleBaseInfoSaved"
-        />
-        <attachment
-          v-else-if="activeExtraKey === 'attachment'"
-          v-model:model-value="fileList"
-          :active-case="activeCase"
-          @upload-success="initCaseDetail"
-        />
-        <caseCommentList v-else-if="activeExtraKey === 'comments'" :active-case="activeCase" />
-        <bugList v-else :active-case="activeCase" />
+        <template v-if="!isWithDetailNode">
+          <baseInfo
+            v-if="activeExtraKey === 'baseInfo'"
+            ref="baseInfoRef"
+            :loading="baseInfoLoading"
+            :active-case="activeCase"
+            @init-template="(id) => (templateId = id)"
+            @cancel="handleBaseInfoCancel"
+            @saved="handleBaseInfoSaved"
+          />
+          <attachment
+            v-else-if="activeExtraKey === 'attachment'"
+            v-model:model-value="fileList"
+            :active-case="activeCase"
+            @upload-success="initCaseDetail"
+          />
+          <caseCommentList v-else-if="activeExtraKey === 'comments'" :active-case="activeCase" />
+          <bugList v-else :active-case="activeCase" />
+        </template>
+        <template v-else>
+          <detail
+            :active-case="activeCase"
+            :active-node-detail-resource="activeNodeDetailResource"
+            @cancel="handleBaseInfoCancel"
+            @init-template="(id) => (templateId = id)"
+            @saved="handleBaseInfoSaved"
+          />
+        </template>
       </template>
       <template #shortCutList>
         <div class="ms-minder-shortcut-trigger-listitem">
@@ -112,6 +123,7 @@
   import baseInfo from './basInfo.vue';
   import bugList from './bugList.vue';
   import caseCommentList from './commentList.vue';
+  import detail from './detail.vue';
 
   import {
     checkFileIsUpdateRequest,
@@ -160,6 +172,7 @@
     prerequisiteTag,
     remarkTag,
     caseOffspringTags,
+    caseWithDetailTags,
     insertSiblingMenus,
     insertSonMenus,
     insertNode,
@@ -289,9 +302,11 @@
   const baseInfoRef = ref<InstanceType<typeof baseInfo>>();
   const baseInfoLoading = ref(false);
 
+  const isWithDetailNode = ref(false);
   const extraVisible = ref<boolean>(false);
   const activeCase = ref<Record<string, any>>({});
   const extractContentTabList = computed(() => {
+    if (isWithDetailNode.value) return [];
     const fullTabList = [
       {
         label: t('common.baseInfo'),
@@ -316,16 +331,59 @@
     return fullTabList.filter((item) => item.value === 'baseInfo');
   });
   const activeExtraKey = ref<'baseInfo' | 'attachment' | 'comments' | 'bug'>('baseInfo');
+  const activeNodeDetailResource = ref();
+  function handleResourceContentChange() {
+    let { prerequisite, textDescription, expectedResult, description } = activeCase.value;
+
+    const caseNode = window.minder.getNodeById(activeCase.value.id);
+    caseNode.children?.forEach((child: MinderJsonNode) => {
+      if (child.data?.resource?.includes(prerequisiteTag)) {
+        // 前置条件节点
+        prerequisite = child?.data?.text;
+      } else if (child.data?.resource?.includes(textDescTag)) {
+        // 文本描述节点
+        textDescription = child.data.text;
+        // 文本描述的子节点（预期结果）
+        if (child.children?.[0]) {
+          expectedResult = child?.children?.[0]?.data?.text ?? '';
+        }
+      } else if (child.data?.resource?.includes(remarkTag)) {
+        // 备注节点
+        description = child.data.text;
+      }
+    });
+    return {
+      prerequisite,
+      textDescription,
+      expectedResult,
+      description,
+    };
+  }
 
   const isContentChanging = ref(false);
   function handleMinderNodeContentChange(node?: MinderJsonNode) {
     isContentChanging.value = true;
     if (extraVisible.value) {
-      // 已打开用例详情抽屉，更改用例节点文本时同步更新抽屉内的用例名称
-      activeCase.value = {
-        ...activeCase.value,
-        name: node?.data?.text || window.minder.getNodeById(activeCase.value.id)?.data?.text || '',
-      };
+      const nodeText = node?.data?.resource?.includes(caseTag) ? node?.data?.text : '';
+      const name = nodeText || window.minder.getNodeById(activeCase.value.id)?.data?.text || '';
+      // 已打开详情更改前置、文本、备注节点内容更新抽屉详情 前置、文本描述、预期结果、备注内容
+      if (Object.values(activeNodeDetailResource.value).some((e) => e === true)) {
+        const { prerequisite, textDescription, expectedResult, description } = handleResourceContentChange();
+        activeCase.value = {
+          ...activeCase.value,
+          name,
+          prerequisite,
+          textDescription,
+          expectedResult,
+          description,
+        };
+        // 已打开用例详情抽屉，更改用例节点文本时同步更新抽屉内的用例名称
+      } else {
+        activeCase.value = {
+          ...activeCase.value,
+          name,
+        };
+      }
     }
     handleContentChange(node);
     setTimeout(() => {
@@ -403,8 +461,15 @@
 
   function handleBaseInfoSaved() {
     const node: MinderJsonNode = window.minder.getSelectedNode();
-    if (node.data) {
-      initCaseDetail(node.data);
+    let dataParams;
+    if (node?.data?.resource?.some((e) => caseWithDetailTags.includes(e))) {
+      const { parent } = node;
+      dataParams = parent?.data;
+    } else {
+      dataParams = node?.data;
+    }
+    if (dataParams) {
+      initCaseDetail(dataParams);
     }
   }
 
@@ -416,16 +481,25 @@
     const node: MinderJsonNode = window.minder.getSelectedNode();
     const { data } = node;
     if (extraVisible.value) {
-      if (data?.resource && data.resource.includes(caseTag)) {
+      let dataParams = data;
+      if (node.data?.resource?.some((e) => caseWithDetailTags.includes(e))) {
+        const { parent } = node;
+        dataParams = parent?.data;
+      }
+      if (
+        (data?.resource && data.resource.includes(caseTag)) ||
+        node.data?.resource?.some((e) => caseWithDetailTags.includes(e))
+      ) {
         activeExtraKey.value = 'baseInfo';
         resetExtractInfo();
-        if (data.isNew === false) {
+
+        if (dataParams?.isNew === false) {
           // 非新用例节点才能加载详情
-          initCaseDetail(data);
+          initCaseDetail(dataParams);
         } else {
           activeCase.value = {
-            id: data.id,
-            name: data.text,
+            id: dataParams?.id,
+            name: dataParams?.text,
             moduleId: node.parent?.data?.id || '',
             moduleIsNew: !!node.parent?.data?.isNew, // 标记父模块节点是否为新建
             isNew: true,
@@ -697,6 +771,14 @@
     }
   }
 
+  function getShowResourceTag(resource: string[]) {
+    return {
+      showPrerequisite: resource?.includes(prerequisiteTag),
+      showTextDesc: resource?.includes(textDescTag),
+      showRemark: resource?.includes(remarkTag),
+    };
+  }
+
   const showDetailMenu = ref(false);
   const canShowEnterNode = ref(false);
   /**
@@ -728,9 +810,13 @@
     } else {
       canShowEnterNode.value = false;
     }
-    if (data?.resource && data.resource.includes(caseTag)) {
-      // 用例节点才展示详情按钮
+
+    const isWithDetailTagNode = data?.resource?.some((e) => caseWithDetailTags.includes(e));
+    if ((data?.resource && data.resource.includes(caseTag)) || (isWithDetailTagNode && !data?.isNew)) {
+      // 用例节点、前置、文本描述步骤、备注才展示详情按钮
       showDetailMenu.value = true;
+      activeNodeDetailResource.value = getShowResourceTag(node.data?.resource ?? []);
+      isWithDetailNode.value = node.data?.resource?.some((e) => caseWithDetailTags.includes(e)) ?? false;
       if (extraVisible.value) {
         toggleDetail(true);
       }
@@ -1084,6 +1170,9 @@
    * @param callback 保存成功回调
    */
   async function handleMinderSave(fullJson: MinderJson, callback: (refresh: boolean) => void) {
+    if (loading.value) {
+      return;
+    }
     try {
       loading.value = true;
       await saveCaseMinder(makeMinderParams(fullJson));
@@ -1097,7 +1186,9 @@
       console.log(error);
       resetMinderParams(false);
     } finally {
-      loading.value = false;
+      setTimeout(() => {
+        loading.value = false;
+      }, 300);
     }
   }
 
