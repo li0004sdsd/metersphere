@@ -39,7 +39,7 @@ export default {
   'system.plugin.disablePluginContent':
     'The project can not integrate with the platform and the default template of the platform is not available, be careful!',
   'system.plugin.alertDescribe':
-    'The MeterSphere  v3.0  release supports DevOps、 API、 project management、 and database-driven plug-ins ',
+    'The botim  v3.0  release supports DevOps、 API、 project management、 and database-driven plug-ins ',
   'system.plugin.viewTable': 'View details',
   'system.plugin.downAddress': 'Click the link to open a new page',
   'system.plugin.goDownload': 'downloads',

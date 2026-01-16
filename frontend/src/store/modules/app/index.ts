@@ -32,7 +32,7 @@ const defaultThemeConfig = {
   customTheme: '#811fa3',
 };
 const defaultLoginConfig = {
-  title: 'MeterSphere',
+  title: 'botim',
   icon: [],
   loginLogo: [],
   loginImage: [],
@@ -40,7 +40,7 @@ const defaultLoginConfig = {
 };
 const defaultPlatformConfig = {
   logoPlatform: [],
-  platformName: 'MeterSphere',
+  platformName: 'botim',
   helpDoc: 'https://metersphere.io/docs/v3.x/',
 };
 

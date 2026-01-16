@@ -35,7 +35,7 @@ export default {
     exportBug: 'export bug',
     exportBugCount: ' {count} selected',
     deleteCount: 'delete {count} bugs？',
-    deleteTipInternal: ' {count} numbers of bug witch created by MeterSphere will in recycle bin',
+    deleteTipInternal: ' {count} numbers of bug witch created by botim will in recycle bin',
     deleteTipExternal: '{count} numbers of bug will be deleted',
     deleteTip: 'Local bug will in recycle bin and third plant bug will be deleted',
     edit: {

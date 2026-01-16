@@ -1,5 +1,5 @@
 export default {
-  'invite.title': 'Join MeterSphere',
+  'invite.title': 'Join botim',
   'invite.emailPlaceholder': 'Please enter the email address',
   'invite.emailNotNull': 'Email address cannot be empty',
   'invite.emailErr': 'Please enter the correct email',

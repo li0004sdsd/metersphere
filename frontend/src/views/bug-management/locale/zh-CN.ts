@@ -34,7 +34,7 @@ export default {
     exportBug: '导出缺陷',
     exportBugCount: '已选 {count} 条缺陷',
     deleteCount: '确认删除 {count} 个缺陷吗？',
-    deleteTipInternal: '删除后，{count} 条 MeterSphere 创建的缺陷进入回收站',
+    deleteTipInternal: '删除后，{count} 条 botim 创建的缺陷进入回收站',
     deleteTipExternal: '{count} 条第三方平台同步的缺陷将不做回收',
     deleteTip: '删除后, Local 的缺陷进入回收站; 第三方平台同步的缺陷将不做回收',
     edit: {

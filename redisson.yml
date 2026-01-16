@@ -1,0 +1,16 @@
+singleServerConfig:
+  address: "redis://redis:6379"
+  password: ${REDIS_PASSWORD}
+  database: 0
+  connectionPoolSize: 64
+  connectionMinimumIdleSize: 10
+  subscriptionConnectionPoolSize: 50
+  subscriptionConnectionMinimumIdleSize: 1
+  timeout: 3000
+  connectTimeout: 10000
+  retryAttempts: 3
+  retryInterval: 1500
+threads: 16
+nettyThreads: 32
+codec: !<org.redisson.codec.Kryo5Codec> {}
+transportMode: "NIO"

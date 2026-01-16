@@ -1,5 +1,5 @@
 export default {
-  'invite.title': '加入 MeterSphere',
+  'invite.title': '加入 botim',
   'invite.emailPlaceholder': '请输入邮箱地址',
   'invite.emailNotNull': '邮箱地址不能为空',
   'invite.emailErr': '请输入正确的邮箱',

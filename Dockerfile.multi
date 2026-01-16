@@ -1,0 +1,49 @@
+FROM registry.fit2cloud.com/metersphere/alpine-openjdk21-jre
+
+LABEL maintainer="FIT2CLOUD <support@fit2cloud.com>"
+
+ARG MS_VERSION=v3.6.7-lts
+
+# 复制主服务 (MeterSphere)
+COPY backend/app/target/dependency/BOOT-INF/lib /metersphere/lib
+COPY backend/app/target/dependency/BOOT-INF/lib /standalone/lib
+COPY backend/app/target/dependency/META-INF /metersphere/META-INF
+COPY backend/app/target/dependency/BOOT-INF/classes /metersphere
+COPY backend/app/src/main/resources/static /metersphere/static
+ADD frontend/public /metersphere/static
+
+# 复制 Task Runner
+COPY backend/app/target/dependency/BOOT-INF/lib /task-runner/lib
+COPY backend/app/target/dependency/META-INF /task-runner/META-INF
+COPY backend/app/target/dependency/BOOT-INF/classes /task-runner
+
+# 复制 Result Hub
+COPY backend/app/target/dependency/BOOT-INF/lib /result-hub/lib
+COPY backend/app/target/dependency/META-INF /result-hub/META-INF
+COPY backend/app/target/dependency/BOOT-INF/classes /result-hub
+
+# 复制启动脚本
+COPY shells /shells
+RUN chmod +x /shells/*.sh
+
+# 配置文件
+COPY redisson.yml /opt/metersphere/conf/redisson.yml
+
+# 环境变量（默认主服务）
+ENV JAVA_CLASSPATH=/metersphere:/opt/jmeter/lib/ext/*:/metersphere/lib/*:/standalone/lib/*
+ENV JAVA_MAIN_CLASS=io.metersphere.Application
+ENV AB_OFF=true
+ENV MS_VERSION=${MS_VERSION}
+ENV JAVA_OPTIONS="-Dfile.encoding=utf-8 -Djava.awt.headless=true --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED"
+
+# 创建必要目录
+RUN mkdir -p /opt/metersphere/logs/metersphere/history \
+    && mkdir -p /opt/metersphere/logs/task-runner \
+    && mkdir -p /opt/metersphere/logs/result-hub \
+    && mkdir -p /opt/metersphere/conf \
+    && mkdir -p /opt/metersphere/data \
+    && echo -n "${MS_VERSION}" > /tmp/MS_VERSION \
+    && touch /opt/metersphere/conf/metersphere.properties \
+    && chmod -R 777 /opt/metersphere
+
+CMD ["/deployments/run-java.sh"]

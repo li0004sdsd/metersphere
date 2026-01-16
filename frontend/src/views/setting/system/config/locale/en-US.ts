@@ -52,7 +52,7 @@ export default {
   'system.config.page.styleTip': 'Platform style refers to the page background color style',
   'system.config.page.theme': 'Theme color',
   'system.config.page.themeTip':
-    'The platform theme color refers to the purple color of MeterSphere except the page background color',
+    'The platform theme color refers to the purple color of botim except the page background color',
   'system.config.page.default': 'Default',
   'system.config.page.follow': 'Follow theme',
   'system.config.page.custom': 'Customize',
@@ -77,7 +77,7 @@ export default {
   'system.config.page.titlePlaceholder': 'Please enter a website name',
   'system.config.page.titleTip': 'The name displayed in the web Tab',
   'system.config.page.loginPreviewTip':
-    'tips: The default is the MeterSphere system interface, which supports custom platform interface settings',
+    'tips: The default is the botim system interface, which supports custom platform interface settings',
   'system.config.page.platformConfig': 'Settings',
   'system.config.page.platformLogo': 'Logo',
   'system.config.page.platformLogoTip':
@@ -91,7 +91,7 @@ export default {
   'system.config.page.helpDocPlaceholder': 'Please enter the address of the help document',
   'system.config.page.helpDocTip': 'Help document jump link can be set, the default is official help document',
   'system.config.page.platformConfigTip':
-    'tips: MeterSphere system interface by default, support for custom interface Settings',
+    'tips: botim system interface by default, support for custom interface Settings',
   'system.config.page.resetAll': 'Reset',
   'system.config.page.save': 'Save & Apply',
   'system.config.page.unsave': 'Unsaved',

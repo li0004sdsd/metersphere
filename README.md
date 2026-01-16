@@ -3,13 +3,14 @@
 <p align="center">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://shields.io/github/license/metersphere/metersphere?color=%231890FF" alt="License: GPL v3"></a>
   <a href="https://www.codacy.com/gh/metersphere/metersphere/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=metersphere/metersphere&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/da67574fd82b473992781d1386b937ef" alt="Codacy"></a>
-  <a href="https://github.com/metersphere/metersphere/releases"><img src="https://img.shields.io/github/v/release/metersphere/metersphere" alt="GitHub release"></a>
+  <a href="https[deploy.sh](deploy.sh)://github.com/metersphere/metersphere/releases"><img src="https://img.shields.io/github/v/release/metersphere/metersphere" alt="GitHub release"></a>
   <a href="https://github.com/metersphere/metersphere"><img src="https://img.shields.io/github/stars/metersphere/metersphere?color=%231890FF&style=flat-square" alt="Stars"></a>
   <a href="https://hub.docker.com/r/metersphere/metersphere-ce-allinone"><img src="https://img.shields.io/docker/pulls/metersphere/metersphere-ce-allinone?label=downloads" alt="Download"></a>
   <a href="https://gitee.com/fit2cloud-feizhiyun/MeterSphere"><img src="https://gitee.com/fit2cloud-feizhiyun/MeterSphere/badge/star.svg?theme=gvp" alt="Gitee Stars"></a>
   <a href="https://gitcode.com/feizhiyun/MeterSphere"><img src="https://gitcode.com/feizhiyun/MeterSphere/star/badge.svg" alt="GitCode Stars"></a><br>
 </p>
 <hr />
+
 
 MeterSphere  是新一代的开源持续测试工具，让软件测试工作更简单、更高效，不再成为持续交付的瓶颈。
 
