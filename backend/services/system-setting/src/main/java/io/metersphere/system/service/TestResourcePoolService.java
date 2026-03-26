@@ -30,7 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -208,50 +211,63 @@ public class TestResourcePoolService {
         JSON.parseObject(testResourceDTOStr, TestResourceDTO.class);
     }
 
+    private boolean licenseValidate() {
+        var licenseService = CommonBeanFactory.getBean(LicenseService.class);
+        return Optional.ofNullable(licenseService)
+                .map(LicenseService::validate)
+                .map(licenseDTO -> "valid".equals(licenseDTO.getStatus()))
+                .orElse(false);
+    }
+
     public TestResourcePoolReturnDTO getTestResourcePoolDetail(String testResourcePoolId) {
-        TestResourcePoolReturnDTO testResourcePoolReturnDTO = new TestResourcePoolReturnDTO();
-        TestResourcePool testResourcePool = testResourcePoolMapper.selectByPrimaryKey(testResourcePoolId);
+        var testResourcePool = testResourcePoolMapper.selectByPrimaryKey(testResourcePoolId);
         if (testResourcePool == null) {
             throw new MSException(Translator.get("test_resource_pool_not_exists"));
         }
-        TestResourcePoolBlob testResourcePoolBlob = testResourcePoolBlobMapper.selectByPrimaryKey(testResourcePoolId);
+
+        var testResourcePoolBlob = testResourcePoolBlobMapper.selectByPrimaryKey(testResourcePoolId);
+        var testResourcePoolReturnDTO = new TestResourcePoolReturnDTO();
+        BeanUtils.copyBean(testResourcePoolReturnDTO, testResourcePool);
+
         if (testResourcePoolBlob == null) {
-            BeanUtils.copyBean(testResourcePoolReturnDTO, testResourcePool);
             return testResourcePoolReturnDTO;
         }
-        byte[] configuration = testResourcePoolBlob.getConfiguration();
-        String testResourceDTOStr = new String(configuration);
-        TestResourceDTO testResourceDTO = JSON.parseObject(testResourceDTOStr, TestResourceDTO.class);
+
+        var configuration = testResourcePoolBlob.getConfiguration();
+        var testResourceDTO = JSON.parseObject(new String(configuration), TestResourceDTO.class);
+
         if (CollectionUtils.isEmpty(testResourceDTO.getNodesList())) {
             testResourceDTO.setNodesList(new ArrayList<>());
         } else {
-            for (TestResourceNodeDTO testResourceNodeDTO : testResourceDTO.getNodesList()) {
-                if (testResourceNodeDTO.getSingleTaskConcurrentNumber() == null) {
-                    testResourceNodeDTO.setSingleTaskConcurrentNumber(3);
+            testResourceDTO.getNodesList().forEach(testResourceNodeDTO -> {
+                if (testResourceNodeDTO.getSingleTaskConcurrentNumber() == null || !licenseValidate()) {
+                    testResourceNodeDTO.setSingleTaskConcurrentNumber(1);
                 }
-            }
+            });
         }
-        TestResourceReturnDTO testResourceReturnDTO = new TestResourceReturnDTO();
+
+        var testResourceReturnDTO = new TestResourceReturnDTO();
         BeanUtils.copyBean(testResourceReturnDTO, testResourceDTO);
-        List<String> orgIds = testResourceDTO.getOrgIds();
-        List<OptionDTO> orgIdNameMap = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(orgIds)) {
-            for (String orgId : orgIds) {
-                OptionDTO optionDTO = new OptionDTO();
-                Organization organization = organizationMapper.selectByPrimaryKey(orgId);
-                optionDTO.setId(orgId);
-                if (organization != null) {
-                    optionDTO.setName(organization.getName());
-                } else {
-                    optionDTO.setName(Translator.get("organization_not_exists"));
-                }
-                orgIdNameMap.add(optionDTO);
-            }
-        }
+
+        var orgIdNameMap = Optional.ofNullable(testResourceDTO.getOrgIds())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::getOrgNameOption)
+                .collect(Collectors.toList());
+
         testResourceReturnDTO.setOrgIdNameMap(orgIdNameMap);
-        BeanUtils.copyBean(testResourcePoolReturnDTO, testResourcePool);
         testResourcePoolReturnDTO.setTestResourceReturnDTO(testResourceReturnDTO);
         return testResourcePoolReturnDTO;
+    }
+
+    private OptionDTO getOrgNameOption(String orgId) {
+        var optionDTO = new OptionDTO();
+        var organization = organizationMapper.selectByPrimaryKey(orgId);
+        optionDTO.setId(orgId);
+        optionDTO.setName(Optional.ofNullable(organization)
+                .map(Organization::getName)
+                .orElse(Translator.get("organization_not_exists")));
+        return optionDTO;
     }
 
     public TestResourcePool getTestResourcePool(String testResourcePoolId) {

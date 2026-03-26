@@ -45,8 +45,8 @@ public class NodeResourcePoolService {
                 if (testResourceNodeDTO.getConcurrentNumber() > 10) {
                     testResourceNodeDTO.setConcurrentNumber(10);
                 }
-                if (testResourceNodeDTO.getSingleTaskConcurrentNumber() > 3) {
-                    testResourceNodeDTO.setSingleTaskConcurrentNumber(3);
+                if (testResourceNodeDTO.getSingleTaskConcurrentNumber() > 1) {
+                    testResourceNodeDTO.setSingleTaskConcurrentNumber(1);
                 }
             }
 

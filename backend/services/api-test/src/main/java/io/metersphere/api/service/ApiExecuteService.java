@@ -310,7 +310,7 @@ public class ApiExecuteService {
         Exception lastException = null;
         while (true) {
             TestResourceNodeDTO testResourceNodeDTO = getNextExecuteNode(testResourcePoolDTO);
-            taskInfo.setPerTaskSize(Optional.ofNullable(testResourceNodeDTO.getSingleTaskConcurrentNumber()).orElse(3));
+            taskInfo.setPerTaskSize(Optional.ofNullable(testResourceNodeDTO.getSingleTaskConcurrentNumber()).orElse(1));
             taskInfo.setPoolSize(testResourceNodeDTO.getConcurrentNumber());
 
             String endpoint = MsHttpClient.getEndpoint(testResourceNodeDTO.getIp(), testResourceNodeDTO.getPort());
@@ -452,7 +452,7 @@ public class ApiExecuteService {
             while (nodeIterator.hasNext()) {
                 TestResourceNodeDTO testResourceNode = nodeIterator.next();
                 String endpoint = MsHttpClient.getEndpoint(testResourceNode.getIp(), testResourceNode.getPort());
-                subTaskRequest.getTaskInfo().setPerTaskSize(Optional.ofNullable(testResourceNode.getSingleTaskConcurrentNumber()).orElse(3));
+                subTaskRequest.getTaskInfo().setPerTaskSize(Optional.ofNullable(testResourceNode.getSingleTaskConcurrentNumber()).orElse(1));
                 subTaskRequest.getTaskInfo().setPoolSize(testResourceNode.getConcurrentNumber());
                 try {
                     List<String> taskKeys = subTaskRequest.getTaskItems().stream()

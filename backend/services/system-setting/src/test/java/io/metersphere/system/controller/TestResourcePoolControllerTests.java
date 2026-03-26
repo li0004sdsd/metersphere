@@ -87,7 +87,7 @@ class TestResourcePoolControllerTests extends BaseTest {
             "       \"port\": \"1194\",\n" +
             "       \"monitor\": \"9100\",\n" +
             "       \"concurrentNumber\": \"100\",\n" +
-            "      \"singleTaskConcurrentNumber\": 3\n" +
+            "      \"singleTaskConcurrentNumber\": 1\n" +
             "   }],\n" +
             "\"ip\":\"172.2.130.1\",\n" +
             "\"token\":\"dsdfssdsvgsd\",\n" +
@@ -109,7 +109,7 @@ class TestResourcePoolControllerTests extends BaseTest {
             "      \"port\": \"8082\",\n" +
             "      \"monitor\": \"9100\",\n" +
             "      \"concurrentNumber\": \"100\",\n" +
-            "      \"singleTaskConcurrentNumber\": 3\n" +
+            "      \"singleTaskConcurrentNumber\": 1\n" +
             "    }\n" +
             "  ],\n" +
             "  \"orgIds\": [\"sys_default_organization_2\",\"sys_default_organization_3\"],\n" +

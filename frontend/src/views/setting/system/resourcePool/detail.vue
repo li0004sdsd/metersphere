@@ -458,15 +458,15 @@
     testResourceDTO: {
       uiGrid: '',
       girdConcurrentNumber: 1,
-      podThreads: 3,
+      podThreads: 1,
       concurrentNumber: 10,
-      singleTaskConcurrentNumber: 3,
+      singleTaskConcurrentNumber: 1,
       nodesList: [
         {
           ip: '',
           port: '',
           concurrentNumber: 10,
-          singleTaskConcurrentNumber: 3,
+          singleTaskConcurrentNumber: 1,
         },
       ],
       ip: '',
@@ -507,7 +507,7 @@
     if (isXpack.value) {
       return 9999999;
     }
-    return 3;
+    return 1;
   });
 
   onBeforeMount(async () => {
@@ -535,9 +535,9 @@
         testResourceDTO: {
           ...testResourceReturnDTO,
           girdConcurrentNumber: girdConcurrentNumber || 1,
-          podThreads: podThreads || 3,
+          podThreads: podThreads || 1,
           concurrentNumber: concurrentNumber || 10,
-          singleTaskConcurrentNumber: singleTaskConcurrentNumber || 3,
+          singleTaskConcurrentNumber: singleTaskConcurrentNumber || 1,
           orgIds: orgIdNameMap?.map((e) => e.id) || [],
         },
       };
@@ -670,7 +670,7 @@
       min: 1,
       max: maxSingleTaskConcurrentNumber.value,
       tooltip: licenseStore.hasLicense() ? '' : t('system.resourcePool.singleConcurrentNumberMinToolTip'),
-      defaultValue: 3,
+      defaultValue: 1,
       disabled: !licenseStore.hasLicense(),
     },
   ]);
@@ -758,13 +758,13 @@
       setBatchFormRes();
     } else {
       form.value.testResourceDTO.concurrentNumber = 10;
-      form.value.testResourceDTO.singleTaskConcurrentNumber = 3;
+      form.value.testResourceDTO.singleTaskConcurrentNumber = 1;
       form.value.testResourceDTO.nodesList = [
         {
           ip: '',
           port: '',
           concurrentNumber: 10,
-          singleTaskConcurrentNumber: 3,
+          singleTaskConcurrentNumber: 1,
         },
       ];
     }

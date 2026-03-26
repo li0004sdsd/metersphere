@@ -115,7 +115,7 @@ export default {
   'system.resourcePool.testResourceDTO.podThreadsRequired':
     'Maximum number of concurrent tasks per task cannot be empty',
   'system.resourcePool.testResourceDTO.podThreadsTip':
-    'The maximum number of concurrent tasks for the community version is 3. If you need a higher number of concurrent tasks, you can apply for a trial of the enterprise version.',
+    'The maximum number of concurrent tasks for the community version is 1. If you need a higher number of concurrent tasks, you can apply for a trial of the enterprise version.',
   'system.resourcePool.testResourceDTO.downloadRoleYaml': 'Download YAML files',
   'system.resourcePool.testResourceDTO.downloadRoleYamlTip':
     'Please fill in the namespace before downloading the YAML file',
@@ -150,5 +150,5 @@ export default {
   'system.resourcePool.singleConcurrentNumberMin': 'A single task maximum concurrency can not be empty',
   'system.resourcePool.singleConcurrentNumberPlaceholder': 'Enter the maximum number of concurrent tasks',
   'system.resourcePool.singleConcurrentNumberMinToolTip':
-    'Community edition a single task maximum concurrency of 3, if you need a larger concurrency, can apply for',
+    'Community edition a single task maximum concurrency of 1, if you need a larger concurrency, can apply for',
 };

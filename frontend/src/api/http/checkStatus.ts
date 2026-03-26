@@ -95,7 +95,7 @@ export default function checkStatus(
               [
                 h(
                   'span',
-                  (licenseStore.licenseInfo?.license.count || 30) <= 30
+                  (licenseStore.licenseInfo?.license.count || 5) <= 5
                     ? t('user.businessCreateUsersLimitThirty')
                     : t('user.businessCreateUsersLimitMax', { count: licenseStore.licenseInfo?.license.count })
                 ),
